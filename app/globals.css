@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #f9f9f7;
+  --color-surface: #f9f9f7;
+  --color-surface-bright: #f9f9f7;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f3f4f2;
+  --color-surface-container: #eceeec;
+  --color-surface-container-high: #e6e9e6;
+  --color-surface-container-highest: #e0e3e0;
+  --color-surface-dim: #d7dbd8;
+  --color-surface-variant: #e0e3e0;
+  --color-on-surface: #2f3332;
+  --color-on-surface-variant: #5c605e;
+  --color-on-background: #2f3332;
+
+  --color-primary: #3d618a;
+  --color-primary-container: #abcffe;
+  --color-primary-fixed: #abcffe;
+  --color-primary-fixed-dim: #9ec1ef;
+  --color-primary-dim: #31557d;
+  --color-on-primary: #f7f9ff;
+  --color-on-primary-container: #1f466d;
+  --color-on-primary-fixed: #023258;
+  --color-on-primary-fixed-variant: #2a4f77;
+  --color-inverse-primary: #abcffe;
+
+  --color-secondary: #3b6666;
+  --color-secondary-container: #bdebea;
+  --color-secondary-fixed: #bdebea;
+  --color-secondary-fixed-dim: #afdddc;
+  --color-secondary-dim: #2e5a5a;
+  --color-on-secondary: #e0fffe;
+  --color-on-secondary-container: #2d5958;
+  --color-on-secondary-fixed: #184646;
+  --color-on-secondary-fixed-variant: #376362;
+
+  --color-tertiary: #4e663c;
+  --color-tertiary-container: #e0fdc6;
+  --color-tertiary-fixed: #e0fdc6;
+  --color-tertiary-fixed-dim: #d2eeb9;
+  --color-tertiary-dim: #425a31;
+  --color-on-tertiary: #edffd9;
+  --color-on-tertiary-container: #4b6239;
+  --color-on-tertiary-fixed: #395028;
+  --color-on-tertiary-fixed-variant: #556d42;
+
+  --color-error: #a83836;
+  --color-error-container: #fa746f;
+  --color-error-dim: #67040d;
+  --color-on-error: #fff7f6;
+  --color-on-error-container: #6e0a12;
+
+  --color-outline: #777c79;
+  --color-outline-variant: #afb3b0;
+  --color-inverse-surface: #0d0f0e;
+  --color-inverse-on-surface: #9c9d9b;
+  --color-surface-tint: #3d618a;
+
+  --font-headline: 'Manrope', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Inter', sans-serif;
+
+  --radius-DEFAULT: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+}
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f9f9f7;
+    color: #2f3332;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Manrope', sans-serif;
+  }
+}
+
+@layer utilities {
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  .fill-icon {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #e0e3e0; border-radius: 10px; }
+  .glass-panel {
+    background: rgba(249, 249, 247, 0.7);
+    backdrop-filter: blur(24px);
+  }
+}
