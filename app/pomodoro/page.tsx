@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import TopBar from '@/components/TopBar'
 import { useLocalStorage } from '@/lib/useLocalStorage'
 
-const SESSIONS = [
+const DEFAULT_SESSIONS = [
   { label: '番茄鐘', mins: 25, color: 'primary' },
   { label: '短休息', mins: 5, color: 'secondary' },
   { label: '長休息', mins: 15, color: 'tertiary' },
@@ -23,8 +23,9 @@ function beep(ctx: AudioContext) {
 }
 
 export default function PomodoroPage() {
+  const [sessions, setSessions] = useLocalStorage('pomodoro-sessions', DEFAULT_SESSIONS)
   const [sessionIdx, setSessionIdx] = useState(0)
-  const [secondsLeft, setSecondsLeft] = useState(SESSIONS[0].mins * 60)
+  const [secondsLeft, setSecondsLeft] = useState(sessions[0].mins * 60)
   const [running, setRunning] = useState(false)
   const [pomodorosDone, setPomodorosDone] = useLocalStorage('pomodoro-done', 0)
   const [totalMins, setTotalMins] = useLocalStorage('pomodoro-total-mins', 0)
@@ -34,7 +35,17 @@ export default function PomodoroPage() {
   const audioCtxRef = useRef<AudioContext | null>(null)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const totalSecs = SESSIONS[sessionIdx].mins * 60
+  const [showSettings, setShowSettings] = useState(false)
+  const [editSessions, setEditSessions] = useState([...sessions])
+
+  const saveSettings = () => {
+    setSessions(editSessions)
+    setShowSettings(false)
+    setSecondsLeft(editSessions[sessionIdx].mins * 60)
+    setRunning(false)
+  }
+
+  const totalSecs = sessions[sessionIdx].mins * 60
   const progress = 1 - secondsLeft / totalSecs
   const circumference = 2 * Math.PI * 120
   const mins = Math.floor(secondsLeft / 60)
@@ -49,7 +60,7 @@ export default function PomodoroPage() {
   const switchSession = useCallback((idx: number) => {
     if (intervalRef.current) clearInterval(intervalRef.current)
     setSessionIdx(idx)
-    setSecondsLeft(SESSIONS[idx].mins * 60)
+    setSecondsLeft(sessions[idx].mins * 60)
     setRunning(false)
   }, [])
 
@@ -58,7 +69,7 @@ export default function PomodoroPage() {
     setRunning(false)
     if (sessionIdx === 0) {
       setPomodorosDone((n) => n + 1)
-      setTotalMins((n) => n + SESSIONS[0].mins)
+      setTotalMins((n) => n + sessions[0].mins)
       // auto advance: after 4 pomodoros go long break
       const next = (pomodorosDone + 1) % 4 === 0 ? 2 : 1
       setTimeout(() => switchSession(next), 1500)
@@ -83,10 +94,10 @@ export default function PomodoroPage() {
 
   const stop = () => {
     setRunning(false)
-    setSecondsLeft(SESSIONS[sessionIdx].mins * 60)
+    setSecondsLeft(sessions[sessionIdx].mins * 60)
   }
 
-  const skip = () => switchSession((sessionIdx + 1) % SESSIONS.length)
+  const skip = () => switchSession((sessionIdx + 1) % sessions.length)
 
   const pomodorosThisCycle = pomodorosDone % 4
 
@@ -101,6 +112,44 @@ export default function PomodoroPage() {
         </div>
 
         <div className="relative z-10 w-full max-w-2xl flex flex-col items-center">
+          <div className="absolute right-0 top-0">
+            <button onClick={() => setShowSettings(!showSettings)} className="p-2 text-on-surface-variant hover:text-primary transition-colors">
+              <span className="material-symbols-outlined">settings</span>
+            </button>
+          </div>
+
+          {showSettings && (
+            <div className="absolute top-12 right-0 bg-surface-container-low rounded-xl shadow-lg p-4 z-50 w-64 border border-outline-variant/20">
+              <h3 className="text-sm font-bold text-on-surface mb-3">計時長度設定 (分鐘)</h3>
+              <div className="space-y-3 mb-4">
+                {editSessions.map((s, i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <span className="text-sm text-on-surface">{s.label}</span>
+                    <div className="flex bg-surface-container-lowest rounded-lg border border-transparent focus-within:border-primary focus-within:ring-1 focus-within:ring-primary overflow-hidden">
+                      <select
+                        value={s.mins}
+                        onChange={(e) => {
+                          const newS = [...editSessions];
+                          newS[i].mins = Number(e.target.value);
+                          setEditSessions(newS);
+                        }}
+                        className="bg-transparent px-2 py-1 text-sm outline-none cursor-pointer appearance-none w-16 text-center"
+                      >
+                        {Array.from({ length: 60 }, (_, j) => j + 1).map((m) => (
+                          <option key={m} value={m}>{m}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <button onClick={saveSettings} className="flex-1 bg-primary text-white py-1.5 rounded-lg text-sm font-bold">儲存</button>
+                <button onClick={() => setShowSettings(false)} className="flex-1 bg-surface-container text-on-surface py-1.5 rounded-lg text-sm">取消</button>
+              </div>
+            </div>
+          )}
+
           {/* Stats row */}
           <div className="flex gap-6 mb-8 text-center">
             <div>
@@ -116,7 +165,7 @@ export default function PomodoroPage() {
 
           {/* Session tabs */}
           <div className="flex gap-2 mb-8 bg-surface-container rounded-full p-1">
-            {SESSIONS.map((s, i) => (
+            {sessions.map((s, i) => (
               <button key={i} onClick={() => switchSession(i)}
                 className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${sessionIdx === i ? 'bg-primary text-white shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}>
                 {s.label}
@@ -163,7 +212,7 @@ export default function PomodoroPage() {
                 {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
               </span>
               <span className="mt-3 text-xs font-bold tracking-[0.2em] text-on-surface-variant uppercase">
-                {SESSIONS[sessionIdx].label}
+                {sessions[sessionIdx].label}
               </span>
             </div>
           </div>

@@ -9,6 +9,8 @@ export interface Note {
   tags: string; pinned: boolean; date: string
 }
 
+interface Project { id: number; name: string; progress: number }
+
 const INIT_NOTES: Note[] = []
 
 const PROJECT_COLORS: Record<string, string> = {
@@ -16,15 +18,19 @@ const PROJECT_COLORS: Record<string, string> = {
 }
 const color = (p: string) => PROJECT_COLORS[p] ?? 'primary'
 
-const EMPTY: Note = { id: 0, title: '', content: '', project: '應用設計', tags: '', pinned: false, date: '' }
+const EMPTY: Note = { id: 0, title: '', content: '', project: '', tags: '', pinned: false, date: '' }
 
 export default function NotesPage() {
+  const [dbProjects] = useLocalStorage<Project[]>('projects', [])
   const [notes, setNotes] = useLocalStorage<Note[]>('notes', INIT_NOTES)
   const [filter, setFilter] = useState('全部')
   const [modal, setModal] = useState<Note | null>(null)   // null = closed
   const [editing, setEditing] = useState(false)
 
-  const projects = ['全部', ...Array.from(new Set(notes.map(n => n.project)))]
+  const activeProjects = dbProjects.map(p => p.name)
+  if (activeProjects.length === 0) activeProjects.push('一般筆記') // Fallback if empty
+
+  const projects = ['全部', ...Array.from(new Set([...notes.map(n => n.project), ...activeProjects]))]
 
   const visible = filter === '全部' ? notes : notes.filter(n => n.project === filter)
   const pinned = visible.filter(n => n.pinned)
@@ -122,9 +128,9 @@ export default function NotesPage() {
                 <input value={modal.title} onChange={e => setModal(m => m && ({ ...m, title: e.target.value }))}
                   placeholder="標題" className="w-full bg-surface-container-low rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:ring-1 focus:ring-primary" />
                 <div className="flex gap-2">
-                  <select value={modal.project} onChange={e => setModal(m => m && ({ ...m, project: e.target.value }))}
+                  <select value={modal.project || activeProjects[0]} onChange={e => setModal(m => m && ({ ...m, project: e.target.value }))}
                     className="flex-1 bg-surface-container-low rounded-xl px-3 py-2 text-sm outline-none">
-                    {['應用設計','撰寫報告','學習 Python','市場調查'].map(p => <option key={p}>{p}</option>)}
+                    {activeProjects.map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
                   <input value={modal.tags} onChange={e => setModal(m => m && ({ ...m, tags: e.target.value }))}
                     placeholder="標籤（逗號分隔）" className="flex-1 bg-surface-container-low rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary" />

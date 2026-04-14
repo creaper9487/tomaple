@@ -13,7 +13,7 @@ const INIT_BLOCKS: Block[] = []
 export default function SchedulePage() {
   const [blocks, setBlocks] = useLocalStorage<Block[]>('schedule', INIT_BLOCKS)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ time: '', title: '', duration: '', tags: '' })
+  const [form, setForm] = useState({ hour: '08', minute: '00', title: '', duration: '', tags: '' })
 
   const today = new Date()
   const dateStr = today.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
@@ -26,16 +26,18 @@ export default function SchedulePage() {
     const colors = ['primary', 'secondary', 'tertiary']
     const c = colors[Math.floor(Math.random() * 3)]
     setBlocks(bs => [...bs, {
-      id: Date.now(), time: form.time, title: form.title.trim(),
+      id: Date.now(), time: `${form.hour}:${form.minute}`, title: form.title.trim(),
       duration: form.duration || '60 分鐘', icon: 'event', color: c, bg: `${c}-container`,
       tags: form.tags.split(',').map(t => t.trim()).filter(Boolean), done: false
     }])
-    setForm({ time: '', title: '', duration: '', tags: '' })
+    setForm({ hour: '08', minute: '00', title: '', duration: '', tags: '' })
     setShowForm(false)
   }
 
   const doneCount = blocks.filter(b => b.done).length
   const pct = blocks.length ? Math.round((doneCount / blocks.length) * 100) : 0
+
+  const sortedBlocks = [...blocks].sort((a, b) => a.time.localeCompare(b.time))
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -72,8 +74,17 @@ export default function SchedulePage() {
             <div className="mb-5 p-4 rounded-xl bg-surface-container-low border border-outline-variant/20 space-y-3">
               <h3 className="text-sm font-bold text-on-surface">新增行程</h3>
               <div className="flex gap-2">
-                <input value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))}
-                  type="time" className="w-32 bg-surface-container-lowest rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary" />
+                <div className="flex bg-surface-container-lowest rounded-lg border border-transparent focus-within:border-primary focus-within:ring-1 focus-within:ring-primary overflow-hidden">
+                  <select value={form.hour} onChange={e => setForm(f => ({ ...f, hour: e.target.value }))}
+                    className="bg-transparent px-2 py-2 text-sm outline-none cursor-pointer appearance-none text-center">
+                    {Array.from({length: 24}, (_, i) => i.toString().padStart(2, '0')).map(h => <option key={h} value={h}>{h}</option>)}
+                  </select>
+                  <span className="py-2 text-sm text-on-surface-variant">:</span>
+                  <select value={form.minute} onChange={e => setForm(f => ({ ...f, minute: e.target.value }))}
+                    className="bg-transparent px-2 py-2 text-sm outline-none cursor-pointer appearance-none text-center">
+                    {Array.from({length: 12}, (_, i) => (i*5).toString().padStart(2, '0')).map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
                 <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                   onKeyDown={e => e.key === 'Enter' && add()} placeholder="行程標題" autoFocus
                   className="flex-1 bg-surface-container-lowest rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary" />
@@ -96,7 +107,7 @@ export default function SchedulePage() {
           {/* Timeline */}
           <div className="space-y-2 relative">
             <div className="absolute left-18 top-0 bottom-0 w-px bg-surface-container-highest" />
-            {blocks.map(block => (
+            {sortedBlocks.map(block => (
               <div key={block.id} className={`flex items-start gap-4 group transition-opacity ${block.done ? 'opacity-55' : ''}`}>
                 <div className="w-14 text-right shrink-0">
                   <span className="text-xs font-semibold text-on-surface-variant pt-4 block">{block.time}</span>
